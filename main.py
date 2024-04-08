@@ -9,7 +9,7 @@ def main():
     st.text("<www.pexels.com> Background Photos provided by pexels")
     st.divider()
     
-    api_key = "VL0KDEqt8u4xbbD5Q6GRmg14h2vr9OxSZZvgp3d4UpqsV79VvF9DCy0j"
+    api_key = "VL0KDEqt8u4xbbD5Q6GRmg14h2vr9OxSZZvgp3d4UpqsV79VvF9DCy0j"   ## "www.pexel.com" API KEY
     
     # 초기 입력
     query = st.text_input('Input your keyword')
