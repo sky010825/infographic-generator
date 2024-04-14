@@ -13,12 +13,12 @@ def get_pexels_images(api_key, query, per_page):
     return images
 
 # @st.cache_data ?
-def apply_box_to_images(api_key, query, per_page):
+def apply_box_to_images(api_key, query, txt, per_page):
     images = get_pexels_images(api_key, query, per_page)
     modified_images = []
     
     ## 텍스트 연동
-    sentence = text_generator(query)
+    sentence = text_generator(txt)
     
     for i, image_url in enumerate(images):
         response = requests.get(image_url)
