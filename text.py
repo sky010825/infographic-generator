@@ -24,3 +24,6 @@ def text_generator(query):
 
       
 
+
+      
+
