@@ -32,7 +32,7 @@ def main():
 
 def make(query, txt):
     num_images = 1
-    api_key = "VL0KDEqt8u4xbbD5Q6GRmg14h2vr9OxSZZvgp3d4UpqsV79VvF9DCy0j" ##Input your API KEY 
+    api_key = "  " ##Input your API KEY 
     images = apply_box_to_images(api_key, query, txt, per_page=num_images)
         
     for i, image in enumerate(images):
