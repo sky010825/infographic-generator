@@ -14,6 +14,9 @@
 
 ---
 ## 💭
+#### 0. 오류
+- reload시 가끔씩 text가 지워지는 현상, streamlit 로딩이 느린 탓인지 알 수 없음
+
 
 #### 1. multipage
 #### 2. text 가공 
