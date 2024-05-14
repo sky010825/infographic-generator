@@ -1,61 +1,61 @@
+import streamlit as st 
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-import streamlit as st 
 from text import *
 import random
+import io
 
-def make(query, txt):
-    num_images = 1
-    api_key = "" ##Input your API KEY 
-    images = apply_box_to_images(api_key, query, txt, per_page=num_images)
-    return images
-
-def get_pexels_images(api_key, query, per_page):
-    url = f"https://api.pexels.com/v1/search?query={query}&per_page={per_page}"
+def overlay_image(query, text):
+    api_key = "W6rmGVFPuxMtYvqhUUtWnNHpMV1OD9AMrpt9G9NfSZ4Ido1Nwc6AZ6RQ" ##Input your API KEY             
+    url = f"https://api.pexels.com/v1/search?query={query}&per_page={1}"
     headers = {"Authorization": api_key}
     response = requests.get(url, headers=headers)
     data = response.json()
     images_url = [photo['src']['original'] for photo in data['photos']]
-    return images_url
+    
+    text = text_generator(text)
+    overlay_image = TextOverlayImage(io.BytesIO(requests.get(images_url[0]).content))
+    overlay_image.add_text_box(text, 50, 50, (255, 0, 0), (255, 255, 255), font_size=200)
+    image_byte_array = overlay_image.save("output.jpg")
+    return image_byte_array
 
-# @st.cache_data ?
-def apply_box_to_images(api_key, query, txt, per_page):
-    images = get_pexels_images(api_key, query, per_page)
-    modified_images = []
-    
-    ## 텍스트 연동
-    sentence = text_generator(txt)
-    
-    for i, image_url in enumerate(images):
-        response = requests.get(image_url)
-        image = Image.open(BytesIO(response.content))
-        image = image.resize((500,500))
-        width, height = image.size
-        
-        # 텍스트 배경 박스
-        draw = ImageDraw.Draw(image)
-        box_width = int(width * 0.8) 
-        box_height = int(height * 0.5) 
-        box_x = (width - box_width) // 2
-        box_y = (height - box_height) // 2
-        fill_color = (255, 255, 255, 200)  # 불투명도 적용안됨 
-        draw.rectangle([box_x, box_y, box_x + box_width, box_y + box_height], fill=fill_color)  
-        
-        #텍스트
-        if i < len(sentence):  
-            text = sentence[i]
-        else:
-            text = "" 
-        
-        #텍스트 크기, 글꼴
-        font_size = 20
-        font = ImageFont.truetype("NanumGothic.ttf", font_size)
-        # 텍스트 위치 
-        text_x = box_x      
-        text_y = box_y 
-        
-        draw.text((text_x, text_y), text, font=font, fill='black') 
-        modified_images.append(image)
-        
-    return modified_images
+class TextOverlayImage:
+    def __init__(self, image_path):
+        self.image = Image.open(image_path)
+        self.draw = ImageDraw.Draw(self.image)
+        self.text_boxes = []
+
+    def add_text_box(self, text, x, y, text_color, box_color, font_path="NanumGothic.ttf", font_size=20):
+        font = ImageFont.truetype(font_path, font_size)
+        text_width = font.getlength(text)
+        _, text_height = font.getbbox(text)[2:]
+        box_left = x
+        box_top = y
+        box_right = x + text_width
+        box_bottom = y + text_height
+
+        # 텍스트 상자 그리기
+        self.draw.rectangle([(box_left, box_top), (box_right, box_bottom)], fill=box_color)
+
+        # 텍스트 그리기
+        self.draw.text((x, y), text, font=font, fill=text_color)
+
+        # 텍스트 상자와 텍스트를 하나의 객체로 저장
+        text_box = {
+            "text": text,
+            "box": [(box_left, box_top), (box_right, box_bottom)],
+            "text_color": text_color,
+            "box_color": box_color,
+            "font": font,
+            "font_size": font_size
+        }
+        self.text_boxes.append(text_box)
+
+    # def save(self, output_path):
+    #     self.image.save(output_path)
+    def save(self, output_path):
+        byte_io = io.BytesIO()
+        self.image.save(byte_io, format='JPEG')
+        byte_array = byte_io.getvalue()
+        return byte_array
