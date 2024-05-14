@@ -7,7 +7,7 @@ import random
 import io
 
 def overlay_image(query, text):
-    api_key = "W6rmGVFPuxMtYvqhUUtWnNHpMV1OD9AMrpt9G9NfSZ4Ido1Nwc6AZ6RQ" ##Input your API KEY             
+    api_key = "" ##Input your API KEY             
     url = f"https://api.pexels.com/v1/search?query={query}&per_page={1}"
     headers = {"Authorization": api_key}
     response = requests.get(url, headers=headers)
