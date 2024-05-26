@@ -1,7 +1,12 @@
 from langchain_core.prompts import PromptTemplate
+from langchain.output_parsers import CommaSeparatedListOutputParser
 from langchain_community.llms import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
+
+
+output_parser = CommaSeparatedListOutputParser()
+format_instructions = output_parser.get_format_instructions()
 
 # Template 
 prompt_template = PromptTemplate.from_template(
@@ -34,21 +39,52 @@ def text_generator(input_text):
     result = llm(prompt_template.format(text=input_text))
     return result
 
-# def map_categories(result):
-#     category_mapping = {
-#         "제목": "1",
-#         "장소": "2",
-#         "일시": "2",
-#         "기간": "2",
-#         "비용": "3",
-#         "세부사항": "3"
-#     }
-#     mapped_result = []
-#     for item in result:
-#         category = item[0]
-#         value = item[1]
-#         mapped_value = category_mapping.get(category, 3)
+def text_output(input_text):
+    output = text_generator(input_text)
+    result = output_parser(output)
+    return result[0]
 
-#         if mapped_value is not None:
-#             mapped_result.append([mapped_value, value])
-#     return mapped_result  
+
+# PEXEL_SEARCH
+prompt_template_pexel = PromptTemplate.from_template(
+"""
+You are the AI that chooses keywords. 
+Please print out the word that most closely relates to the entered sentence from below. 
+You must only print out the spelling of that word.
+
+word list: ["forest", "school", "book", "coding" , "contest" , "sea",
+"school", "teacher", "student", "classroom", "homework", "lesson", 
+"subject", "exam", "grade", "textbook", "notebook", "desk", "chair", 
+"blackboard", "chalk", "pen", "pencil", "eraser", "ruler", "library", "laboratory",
+"playground", "principal", "schedule", "recess", "uniform", "quiz", "report card", "assignment", 
+"assembly", "bell", "cafeteria", "classmate", "course", "curriculum", "diploma", "education", "field trip", 
+"graduation", "hallway", "holiday", "kindergarten", "lecture", "locker", "lunch", "math", "music", "notebook", "office", 
+"paper", "parent-teacher meeting", "project", "quiz", "recess", "reference book", "registration", "report", "research", "school bus", 
+"school trip", "science", "semester", "sports day", "staff", "study", "subject", "substitute teacher", "syllabus", "timetable", "tuition",
+"vacation", "whiteboard", "worksheet", "yearbook", "assignment", "biology", "chemistry", "class president", "computer lab", "dictionary", 
+"drama", "drawing", "English", "exam results", "extracurricular", "geography", "geometry", "history", "home economics", "language", "literature", 
+"mathematics", "physical education", "physics", "principal's office", "quiz", "reading", "science fair", "spelling", "student council", "teacher's lounge", 
+"timetable", "writing", "advisor", "alumni", "campus tour", "commencement", "course load", "coursework", "curriculum", "dean", "department chair", 
+"dining hall", "dorm room", "elective", "exchange student", "extracurricular activities", "faculty meeting", "fellowship", "fraternity", "graduate student", 
+"honors program", "lecture series", "lecture theatre", "major advisor", "orientation week", "peer review", "postgraduate", "prerequisite", "provost", "resident assistant", 
+"scholarship application", "senior", "sophomore", "student activities", "student center", "student ID", "student organization", "study abroad", "summerschool", "syllabus week", 
+"teaching assistant", "tenure", "undergraduate", "university council", "university policy", "work-study program",
+]
+
+텍스트: {text}
+
+
+예시1:
+Input: 불교 기념 등산 대회
+Output: forest
+
+예시2:
+Input: 공과대학 코딩테스트 개최
+Output: coding
+"""
+)
+llm = OpenAI()
+
+def pexel_search(input_text):
+    result = llm(prompt_template_pexel.format(text=input_text))
+    return result 
