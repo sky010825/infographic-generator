@@ -1,18 +1,22 @@
-from langchain_core.prompts import PromptTemplate
-from langchain.output_parsers import CommaSeparatedListOutputParser
-from langchain_community.llms import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
 
+from langchain.output_parsers import PydanticOutputParser
+from pydantic import BaseModel, Field
+from langchain_core.prompts import PromptTemplate
+from langchain_community.llms import OpenAI
 
-output_parser = CommaSeparatedListOutputParser()
-format_instructions = output_parser.get_format_instructions()
+class Output(BaseModel):
+    result: list = Field(description="Comma separated key information")
+
+output_parser = PydanticOutputParser(pydantic_object=Output)
 
 # Template 
 prompt_template = PromptTemplate.from_template(
 """
-당신은 문장을 추출하는 AI입니다. 다음 텍스트에서 문장의 요소를 출력해주세요.
-요소는 제목, 일시, 신청기간, 비용, 장소, 세부사항 등이 존재합니다.
+당신은 문장을 추출하는 AI입니다. 다음 텍스트에서 문장의 중요단어를 출력해주세요.
+요소는 제목, 일시, 신청기간, 비용, 장소, 세부사항 등이 존재합니다. 제목이라고 판단되는 단어를 가장 맨 앞에 위치하도록 결과를 반환하세요.
+출력형식은 , 로 구분되게 출력하세요.
 
 You are an AI assistant that extracts key information from text related to events or programs.
 and Please organize the input text in the order of importance.
@@ -35,15 +39,12 @@ Output: 불교박람회, 5월20일, 오후4시, 팔정도
 
 llm = OpenAI()
 
-def text_generator(input_text):
-    result = llm(prompt_template.format(text=input_text))
-    return result
-
-def text_output(input_text):
-    output = text_generator(input_text)
-    result = output_parser(output)
-    return result[0]
-
+def text_generator_with_parser(input_text):
+    prompt = prompt_template.format(text=input_text)
+    response = llm(prompt)
+    result_list = [item.strip() for item in response.split(',')]
+    parsed_result = Output(result=result_list)
+    return parsed_result
 
 # PEXEL_SEARCH
 prompt_template_pexel = PromptTemplate.from_template(
@@ -73,7 +74,6 @@ word list: ["forest", "school", "book", "coding" , "contest" , "sea",
 
 텍스트: {text}
 
-
 예시1:
 Input: 불교 기념 등산 대회
 Output: forest
@@ -84,7 +84,6 @@ Output: coding
 """
 )
 llm = OpenAI()
-
 def pexel_search(input_text):
     result = llm(prompt_template_pexel.format(text=input_text))
     return result 
