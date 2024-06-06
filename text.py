@@ -11,11 +11,11 @@ class Output(BaseModel):
 
 output_parser = PydanticOutputParser(pydantic_object=Output)
 
-# Template 
+# Input text Parser 
 prompt_template_text = PromptTemplate.from_template(
 """
 text: {text}
-You are an AI that extracts sentences. Please print out only important words from the {text} you enter. 
+You are an AI that extracts word. Please print out only important words from the {text} you enter. 
 Elements can include title, date and time, application period, cost, location, details, etc. 
 Return the result so that the word you believe to be the title is placed at the very beginning among the words in the sentence.
 For the output form, output the words separately by comma, and output only in words and comma.
@@ -43,3 +43,32 @@ def text_parser(input_text):
     result_list = [item.strip() for item in response.split(',')]
     parsed_result = Output(result=result_list)
     return parsed_result.result
+
+# category_AI
+def sub_title(input_text):
+    text_category_template = PromptTemplate.from_template(
+    """
+    You are the AI that chooses category. 
+    Please print out the word that most closely relates to the category list from below. 
+    You must only print out the spelling of that word.
+
+    category list: ["일시", "장소", "기타", "세부사항", "준비물", "비용", "유의사항", "관련 문의"]
+
+    If there is nothing appropriate in the category list, you can create and print your own top topics.
+
+    텍스트: {text}
+    """,
+    example = [{
+                "text": "6월 6일",
+                "result": "일시"
+            },
+            {
+                "text": "만해광장",
+                "result": "장소"
+            },]
+    )
+    llm = OpenAI(temperature=0)
+    result = llm(text_category_template.format(text=input_text))
+    subtext_category = result.strip()
+    return subtext_category
+
